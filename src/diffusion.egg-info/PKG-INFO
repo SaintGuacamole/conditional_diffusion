@@ -1,0 +1,5 @@
+Metadata-Version: 2.2
+Name: diffusion
+Version: 0.0.0
+Author: Raphael Winkler,
+Requires-Python: >=3.11

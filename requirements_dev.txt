@@ -1,0 +1,16 @@
+numpy~=2.2.1
+torch~=2.5.1
+leapct~=1.26
+matplotlib~=3.10.0
+setuptools~=75.8.0
+fire~=0.7.0
+tqdm~=4.67.1
+torchvision~=0.20.1
+pillow~=11.1.0
+diffusers~=0.32.2
+safetensors~=0.5.2
+wandb~=0.19.4
+torchmetrics~=1.6.1
+imageio~=2.36.1
+diffusion~=0.1.0
+transformers~=4.48.0
