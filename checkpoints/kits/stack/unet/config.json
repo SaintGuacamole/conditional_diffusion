@@ -1,0 +1,59 @@
+{
+  "_class_name": "SinogramConditionedUnet",
+  "_diffusers_version": "0.30.3",
+  "act_fn": "silu",
+  "add_attention": true,
+  "attention_head_dim": 8,
+  "attn_norm_num_groups": null,
+  "block_out_channels": [
+    64,
+    64,
+    128,
+    128,
+    256,
+    256
+  ],
+  "down_block_types": [
+    "ResnetDownBlock",
+    "ResnetDownBlock",
+    "ResnetDownBlock",
+    "ResnetDownBlock",
+    "AttnDownBlock",
+    "AttnDownBlock"
+  ],
+  "dropout": 0.0,
+  "embedding_dim": null,
+  "embeddings": [
+    "positional"
+  ],
+  "flip_sin_to_cos": true,
+  "freq_shift": 0,
+  "in_channels": 1,
+  "layers_per_block": 2,
+  "mask_emb_dim": null,
+  "mid_block_num_layers": 2,
+  "norm_eps": 1e-05,
+  "norm_num_groups": 32,
+  "num_embeddings": null,
+  "out_channels": 1,
+  "resnet_time_scale_shift": "default",
+  "sample_size": [
+    512,
+    512
+  ],
+  "sinogram_encoder_layers_per_block": 2,
+  "sinogram_encoder_n_blocks": 2,
+  "sinogram_encoding_dim": 64,
+  "sinogram_n_angles": 384,
+  "up_block_types": [
+    "AttnUpBlock",
+    "AttnUpBlock",
+    "ResnetUpBlock",
+    "ResnetUpBlock",
+    "ResnetUpBlock",
+    "ResnetUpBlock"
+  ],
+  "up_sample_mode": "nearest",
+  "up_sample_use_conv": true,
+  "use_fourier_encoder": false
+}

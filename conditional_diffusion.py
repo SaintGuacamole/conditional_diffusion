@@ -7,6 +7,7 @@ from functools import partial
 from pathlib import Path
 from typing import Union, Tuple, Optional, Any, List, Iterable, Literal
 
+import fire
 import torch
 import torch.nn.functional as F
 import torchvision
@@ -33,11 +34,9 @@ from diffusion.nn.rotations import ExtractIntoRotations
 from diffusion.nn.scheduler import GaussianDiffusion
 from diffusion.nn.slice_mask import SliceRandomMask
 
-os.environ["WANDB_SILENT"] = "true"
-
 class ConditioningType(str, Enum):
     NONE = "none"
-    FBP = "fbp"
+    FBP = "fbp_estimated_variance"
     STACK = "stack"
 
 class SamplingMethod(str, Enum):
@@ -295,6 +294,7 @@ class ConditionalDiffusionHarness(BaseExperimentHarness, NoiseMixin, MaskedSinog
             num_cycles=1
         )
 
+    @torch.no_grad()
     def unconditional_training_input_prep(self, image: Tensor):
 
         noise_output = self.add_noise(image, device=self.device)
@@ -321,6 +321,7 @@ class ConditionalDiffusionHarness(BaseExperimentHarness, NoiseMixin, MaskedSinog
         fbp = self.circle_mask(fbp.clamp(0., 1.0), mask_value=0.)
         return self.normalize_sparse_fbp(x=fbp, mask_amount=mask_amount).detach().clone()
 
+    @torch.no_grad()
     def fbp_training_input_prep(self, image: Tensor):
 
         noise_output = self.add_noise(image, device=self.device)
@@ -330,8 +331,8 @@ class ConditionalDiffusionHarness(BaseExperimentHarness, NoiseMixin, MaskedSinog
             return_dict=True
         )
         fbp = self.__get_fbp(
-            masked_sinogram=sinogram_output.sample,
-            mask_amount=sinogram_output.mask_amount,
+            masked_sinogram=sinogram_output.sample.detach().clone(),
+            mask_amount=sinogram_output.mask_amount.detach().clone(),
         )
         model_input = get_input_dict(
             sample=noise_output.noisy_x,
@@ -347,6 +348,7 @@ class ConditionalDiffusionHarness(BaseExperimentHarness, NoiseMixin, MaskedSinog
     ):
         return self.extract_into_rotations(masked_sinogram)
 
+    @torch.no_grad()
     def stack_input_prep(self, image: Tensor):
 
         noise_output = self.add_noise(image, device=self.device)
@@ -356,7 +358,7 @@ class ConditionalDiffusionHarness(BaseExperimentHarness, NoiseMixin, MaskedSinog
             return_dict=True
         )
 
-        extracted = self.__get_stack(masked_sinogram=sinogram_output.sample)
+        extracted = self.__get_stack(masked_sinogram=sinogram_output.sample.detach().clone())
 
         model_input = get_input_dict(
             sample=noise_output.noisy_x,
@@ -435,6 +437,7 @@ class ConditionalDiffusionHarness(BaseExperimentHarness, NoiseMixin, MaskedSinog
         model_output = self.model(**model_inputs).sample
         loss, sinogram_loss, vb_loss = self.__compute_losses(
             model_output=model_output,
+            image=image,
             noise_output=noise_output,
             sinogram_output=sinogram_output
         )
@@ -696,3 +699,36 @@ class ConditionalDiffusionHarness(BaseExperimentHarness, NoiseMixin, MaskedSinog
             file_logger.flush()
         file_logger.flush()
         progress_bar.close()
+
+
+if __name__ == "__main__":
+    """
+    Usage example:
+
+    HELP:
+
+    python conditional_diffusion.py --help
+
+    TRAIN: (FROM SCRATCH)
+        python conditional_diffusion.py --project="{{project_name}}" --run="{{run_name}}" --output_dir="/mnt/c/outdir/" --dataset_dir="{{dataset_dir}}" train
+
+    TRAIN RESUME (FROM STEP):
+        python conditional_diffusion.py --project="{{project_name}}" --run="{{run_name}}" --output_dir="/mnt/c/outdir/" --dataset_dir="{{dataset_dir}}" train --step={{step}}
+
+    TRAIN RESUME (FROM CHECKPOINT):
+        python conditional_diffusion.py --project="{{project_name}}" --run="{{run_name}}" --output_dir="/mnt/c/outdir/" --dataset_dir="{{dataset_dir}}" train --checkpoint={{checkpoint_dir}}
+
+    EVALUATE (FROM STEP):
+        python conditional_diffusion.py --output_dir="/mnt/c/{{output_dir_of_training_run}}/" --dataset_dir="{{dataset_dir}}" evaluate --step={{step}}
+
+    EVALUATE (FROM CHECKPOINT):
+        python conditional_diffusion.py --output_dir="" --dataset_dir="{{dataset_dir}}" evaluate --checkpoint={{checkpoint_dir}} --sample_dir={{sample_dir}}
+    """
+
+    import lovely_tensors
+
+    lovely_tensors.monkey_patch()
+
+    os.environ["WANDB_SILENT"] = "true"
+
+    fire.Fire(ConditionalDiffusionHarness)

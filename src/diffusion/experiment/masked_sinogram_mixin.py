@@ -78,7 +78,6 @@ class MaskedSinogramMixin:
                 sinogram = x.clone().mul(2.).sub(1.).clamp(-1., 1.)
             case _:
                 raise NotImplementedError(f"Normalization {normalization} not implemented.")
-
         return self.projector(sinogram)
 
     @torch.no_grad()

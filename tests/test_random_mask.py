@@ -98,3 +98,31 @@ def test_slice_random_mask_equal_with_reset_rng(slice_random_mask):
     )
 
     assert torch.equal(mask_a, mask_b)
+
+def test_slice_random_mask_fixed_mask_amount(slice_random_mask):
+
+    tensor_a = torch.randn(B, C, H, W, device=DEVICE)
+
+    mask_output = slice_random_mask.fixed_sparsity_mask(
+        x=tensor_a,
+        keep_n_angles=20,
+        return_dict=True
+    )
+    assert isinstance(mask_output, SliceMaskOutput)
+
+    assert (mask_output.mask_amount == 20. / H).all()
+
+    for i in range(B):
+        assert mask_output.mask[i, 0, :, 0].sum().item() == 20
+
+def test_slice_random_mask_applies(slice_random_mask):
+
+    tensor_a = torch.randn(B, C, H, W, device=DEVICE)
+
+    mask_output = slice_random_mask(
+        x=tensor_a,
+        return_dict=True
+    )
+
+    assert isinstance(mask_output, SliceMaskOutput)
+    assert (mask_output.sample == tensor_a * mask_output.mask + (1 - mask_output.mask) * MASK_VALUE).all()
