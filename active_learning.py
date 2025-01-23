@@ -407,6 +407,8 @@ class ActiveLearning(MaskedSinogramMixin):
                 )
                 self.__log_metrics(outputs, target_image, index, step, step)
                 save_image(outputs, f"{self.sample_dir}/{index}-{step}-{0}.png")
+
+                return highest_uncertainty_angle
             case _:
                 raise NotImplementedError
 
@@ -443,7 +445,6 @@ class ActiveLearning(MaskedSinogramMixin):
 
         save_image(outputs, f"{self.sample_dir}/{index}-baseline.png")
 
-        # Remove entries from initial mask
         mask = self.subsample_mask(mask, n_iterations)
         masked_sinogram, mask, mask_amount = astuple(
             self.slice_random_mask.apply_mask(sinogram.clone(), mask, return_dict=True)
