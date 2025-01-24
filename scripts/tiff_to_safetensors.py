@@ -1,7 +1,9 @@
 import logging
+import random
 from pathlib import Path
 
 import fire
+import torch
 from PIL import Image
 
 from diffusion.datasets import tiff_to_safetensors_patches
@@ -9,10 +11,11 @@ from diffusion.datasets import tiff_to_safetensors_patches
 Image.MAX_IMAGE_PIXELS = None
 
 def main(
-        tiff_directory: str,
-        patch_directory: str,
-        patch_size: int,
-        overlap: int,
+    tiff_directory: str,
+    patch_directory: str,
+    patch_size: int,
+    overlap: int,
+    train_fraction: float = 0.8
 ):
     tiff_directory = Path(tiff_directory)
     patch_directory = Path(patch_directory)
@@ -31,7 +34,7 @@ def main(
         tiff_to_safetensors_patches(
             file=tiff,
             patch_directory=patch_directory,
-            train_fraction=0.8,
+            train_fraction=train_fraction,
             patch_size=patch_size,
             overlap=overlap,
             pbar_enabled=True,
@@ -41,6 +44,9 @@ def main(
 if __name__ == "__main__":
     import lovely_tensors
     lovely_tensors.monkey_patch()
+
+    torch.cuda.manual_seed(0)
+    random.seed(0)
 
     logging.basicConfig(
         level=logging.INFO,

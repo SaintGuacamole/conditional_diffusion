@@ -1,6 +1,7 @@
 import logging
 import uuid
 from pathlib import Path
+import random
 
 import fire
 import torch
@@ -43,6 +44,7 @@ if __name__ == "__main__":
     lovely_tensors.monkey_patch()
 
     torch.manual_seed(0)
+    random.seed(0)
 
     logging.basicConfig(
         level=logging.INFO,

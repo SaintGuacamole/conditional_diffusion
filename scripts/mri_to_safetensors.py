@@ -1,5 +1,6 @@
 
 import logging
+import random
 import uuid
 from pathlib import Path
 
@@ -43,6 +44,7 @@ if __name__ == "__main__":
     lovely_tensors.monkey_patch()
 
     torch.cuda.manual_seed(0)
+    random.seed(0)
 
     logging.basicConfig(
         level=logging.INFO,
